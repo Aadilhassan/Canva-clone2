@@ -30,7 +30,7 @@ function Dashboard() {
     <div style={{ display: 'flex', flex: 1 }}>
       <div style={{ width: '230px', background: '#252627', display: 'flex', flexDirection: 'column' }}>
         <div style={{ paddingTop: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <img src={Logo} alt="Mural" width="400px"/>
+          <img src={Logo} alt="Marketifyall Design Editor" width="400px"/>
         </div>
         <div
           style={{
