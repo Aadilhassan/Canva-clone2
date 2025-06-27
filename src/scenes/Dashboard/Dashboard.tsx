@@ -30,7 +30,15 @@ function Dashboard() {
     <div style={{ display: 'flex', flex: 1 }}>
       <div style={{ width: '230px', background: '#252627', display: 'flex', flexDirection: 'column' }}>
         <div style={{ paddingTop: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <img src={Logo} alt="Marketifyall Design Editor" width="400px"/>
+          {/* <img src={Logo} alt="Marketifyall Design Editor" width="400px"/> */}
+
+          <h1 style={{ color: '#fff', fontSize: '1.5rem', fontFamily: 'Poppins', fontWeight: 600 }}>
+               Marketifyall
+               
+               <br />
+                Design Editor
+          </h1>
+
         </div>
         <div
           style={{
@@ -59,7 +67,8 @@ function Dashboard() {
         <div
           style={{ display: 'flex', fontSize: '10px', alignItems: 'center', justifyContent: 'center', paddingBottom: '1.5rem', color: '#fff' }}
         >
-         Created by {' '}<a  style={{ textDecoration: 'none', color: 'white' }} href="https://github.com/Imam-Abubakar" target="_blank">{' '} Imam Abubakar</a>
+         
+         Made with {' '}<a  style={{ textDecoration: 'none', color: 'white' }} href="https://marketifyall.com" target="_blank">{'  '}  ❤️ By Marketifyall Team </a>
         </div>
       </div>
       <div style={{ flex: 1, display: 'flex' }}>
