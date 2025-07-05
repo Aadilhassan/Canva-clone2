@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import ResizeObserver from 'resize-observer-polyfill'
 import useAppContext from '@hooks/useAppContext'
 import Loading from './components/Loading'
+import ProtectedRoute from './components/ProtectedRoute'
 import { editorFonts } from './constants/fonts'
 import { useAppDispatch } from './store/store'
 import { getTemplates } from './store/slices/templates/actions'
@@ -79,7 +80,13 @@ function Container({ children }) {
         width: '100vw',
       }}
     >
-      {loaded ? <>{children} </> : <Loading />}
+      {loaded ? (
+        <ProtectedRoute>
+          {children}
+        </ProtectedRoute>
+      ) : (
+        <Loading />
+      )}
     </div>
   )
 }

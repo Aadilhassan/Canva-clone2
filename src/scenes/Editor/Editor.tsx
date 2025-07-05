@@ -44,6 +44,81 @@ function App({ location }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, editor, location])
+  
+  // Auto-save feature with debounced saves
+  useEffect(() => {
+    if (!editor) return;
+    
+    let autoSaveTimeout: number | null = null;
+    let debounceTimeout: number | null = null;
+    
+    // Auto-save every 30 seconds but only if changes were made
+    const startAutoSaveInterval = () => {
+      autoSaveTimeout = window.setTimeout(() => {
+        try {
+          const template = editor.exportToJSON();
+          if (template && template.objects) {
+            localStorage.setItem('canva_clone_autosave', JSON.stringify(template));
+            console.log('Auto-saved canvas state');
+          }
+          startAutoSaveInterval(); // Restart the timer
+        } catch (err) {
+          console.error('Auto-save failed:', err);
+          startAutoSaveInterval(); // Try again next interval
+        }
+      }, 30000) as unknown as number;
+    };
+    
+    // Start the interval
+    startAutoSaveInterval();
+    
+    // Debounced save on history changes (300ms delay)
+    const handleStateChange = () => {
+      if (debounceTimeout) window.clearTimeout(debounceTimeout);
+      
+      debounceTimeout = window.setTimeout(() => {
+        try {
+          const template = editor.exportToJSON();
+          if (template && template.objects) {
+            localStorage.setItem('canva_clone_autosave', JSON.stringify(template));
+          }
+        } catch (err) {
+          console.error('Debounced save failed:', err);
+        }
+      }, 300) as unknown as number;
+    };
+    
+    // Attach event handler
+    editor.on('history:changed', handleStateChange);
+    
+    // Check for autosaved state on load - but only if we don't have an ID or template
+    if (!id && !location?.state?.template) {
+      try {
+        const autosavedState = localStorage.getItem('canva_clone_autosave');
+        if (autosavedState) {
+          const template = JSON.parse(autosavedState);
+          // Let the editor initialize first
+          requestAnimationFrame(() => {
+            try {
+              editor.importFromJSON(template);
+              console.log('Restored from auto-save');
+            } catch (e) {
+              console.error('Failed to restore auto-saved state:', e);
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error checking auto-save:', err);
+      }
+    }
+    
+    // Cleanup
+    return () => {
+      if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
+      if (debounceTimeout) window.clearTimeout(debounceTimeout);
+      editor.off('history:changed', handleStateChange);
+    };
+  }, [editor, id, location]);
 
   const handleLoadTemplate = async template => {
     const fonts = []
