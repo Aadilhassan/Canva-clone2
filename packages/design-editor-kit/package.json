@@ -1,0 +1,39 @@
+{
+  "name": "design-editor-kit",
+  "version": "0.1.0",
+  "description": "Reusable React wrapper around @nkyo/scenify-sdk Editor with Provider and autosave hooks.",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "@nkyo/scenify-sdk": ">=0.3.4",
+    "baseui": ">=10.0.0",
+    "styletron-react": ">=6.0.0",
+    "styletron-engine-atomic": ">=1.4.0"
+  },
+  "devDependencies": {
+    "tsup": "^7.2.0",
+    "typescript": "^5.4.0",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

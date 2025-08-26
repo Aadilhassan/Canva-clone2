@@ -1,6 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import useAppContext from '@/hooks/useAppContext'
-import Editor, { useEditor } from '@nkyo/scenify-sdk'
 import { useParams } from 'react-router'
 import { getElements } from '@store/slices/elements/actions'
 import { getFonts } from '@store/slices/fonts/actions'
@@ -10,6 +9,7 @@ import Panels from './components/Panels'
 import Toolbox from './components/Toolbox'
 import Footer from './components/Footer'
 import api from '@services/api'
+import { DesignEditor, useEditor } from 'design-editor-kit'
 
 function App({ location }) {
   const { setCurrentTemplate } = useAppContext()
@@ -22,10 +22,7 @@ function App({ location }) {
     dispath(getFonts())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  const editorConfig = {
-    clipToFrame: true,
-    scrollLimit: 0,
-  }
+  const editorConfig = useMemo(() => ({ clipToFrame: true, scrollLimit: 0 }), [])
 
   useEffect(() => {
     if (id && editor && location) {
@@ -46,79 +43,7 @@ function App({ location }) {
   }, [id, editor, location])
   
   // Auto-save feature with debounced saves
-  useEffect(() => {
-    if (!editor) return;
-    
-    let autoSaveTimeout: number | null = null;
-    let debounceTimeout: number | null = null;
-    
-    // Auto-save every 30 seconds but only if changes were made
-    const startAutoSaveInterval = () => {
-      autoSaveTimeout = window.setTimeout(() => {
-        try {
-          const template = editor.exportToJSON();
-          if (template && template.objects) {
-            localStorage.setItem('canva_clone_autosave', JSON.stringify(template));
-            console.log('Auto-saved canvas state');
-          }
-          startAutoSaveInterval(); // Restart the timer
-        } catch (err) {
-          console.error('Auto-save failed:', err);
-          startAutoSaveInterval(); // Try again next interval
-        }
-      }, 30000) as unknown as number;
-    };
-    
-    // Start the interval
-    startAutoSaveInterval();
-    
-    // Debounced save on history changes (300ms delay)
-    const handleStateChange = () => {
-      if (debounceTimeout) window.clearTimeout(debounceTimeout);
-      
-      debounceTimeout = window.setTimeout(() => {
-        try {
-          const template = editor.exportToJSON();
-          if (template && template.objects) {
-            localStorage.setItem('canva_clone_autosave', JSON.stringify(template));
-          }
-        } catch (err) {
-          console.error('Debounced save failed:', err);
-        }
-      }, 300) as unknown as number;
-    };
-    
-    // Attach event handler
-    editor.on('history:changed', handleStateChange);
-    
-    // Check for autosaved state on load - but only if we don't have an ID or template
-    if (!id && !location?.state?.template) {
-      try {
-        const autosavedState = localStorage.getItem('canva_clone_autosave');
-        if (autosavedState) {
-          const template = JSON.parse(autosavedState);
-          // Let the editor initialize first
-          requestAnimationFrame(() => {
-            try {
-              editor.importFromJSON(template);
-              console.log('Restored from auto-save');
-            } catch (e) {
-              console.error('Failed to restore auto-saved state:', e);
-            }
-          });
-        }
-      } catch (err) {
-        console.error('Error checking auto-save:', err);
-      }
-    }
-    
-    // Cleanup
-    return () => {
-      if (autoSaveTimeout) window.clearTimeout(autoSaveTimeout);
-      if (debounceTimeout) window.clearTimeout(debounceTimeout);
-      editor.off('history:changed', handleStateChange);
-    };
-  }, [editor, id, location]);
+  // Let the package handle autosave and change/save callbacks
 
   const handleLoadTemplate = async template => {
     const fonts = []
@@ -177,7 +102,15 @@ function App({ location }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           <Toolbox />
           <div style={{ flex: 1, display: 'flex', padding: '1px' }}>
-            <Editor config={editorConfig} />
+            <DesignEditor
+              config={editorConfig}
+              initialTemplate={location?.state?.template}
+              enableAutosave
+              autosaveKey={id ? `design_${id}` : 'canva_clone_autosave'}
+              onChange={() => {/* host can plug in if needed */}}
+              onSave={() => {/* host can plug in if needed */}}
+              onLoadError={(e) => { console.error('Template load error', e) }}
+            />
           </div>
           <Footer />
         </div>
