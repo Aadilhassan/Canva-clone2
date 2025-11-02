@@ -35,14 +35,14 @@ class ApiService {
       // const assets = await designService.getAssets(workspaceId, 'image')
       
       // Transform design assets to IUpload format
-      return assets.map(asset => ({
+      /* /* return assets.map(asset => ({
         id: asset.id,
         contentType: asset.mime_type || 'image/jpeg',
         folder: 'uploads',
         name: asset.name,
         type: asset.asset_type,
         url: asset.public_url || ''
-      }))
+      })) */
     } catch (err) {
       throw err
     }
@@ -230,7 +230,7 @@ class ApiService {
       // const workspaceId = await this.getCurrentWorkspaceId()
       // const projects = await designService.getDesignProjects(workspaceId)
       
-      return projects.map(project => ({
+      /* return projects.map(project => ({
         id: project.id,
         name: project.name,
         preview: project.thumbnail_url,
@@ -242,7 +242,7 @@ class ApiService {
         status: project.status,
         created_at: project.created_at,
         updated_at: project.updated_at
-      }))
+      })) */
     } catch (err) {
       throw err
     }

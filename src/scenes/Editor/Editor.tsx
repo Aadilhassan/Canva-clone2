@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import useAppContext from '@/hooks/useAppContext'
 import { useLocation } from 'react-router'
 import { getElements } from '@store/slices/elements/actions'
@@ -15,6 +15,7 @@ function App() {
   const editor = useEditor()
   const location = useLocation()
   const dispath = useAppDispatch()
+  const [hasInitialized, setHasInitialized] = useState(false)
   
   // Parse URL parameters
   const searchParams = new URLSearchParams(location.search)
@@ -30,7 +31,9 @@ function App() {
   const editorConfig = useMemo(() => ({ clipToFrame: true, scrollLimit: 0 }), [])
 
   useEffect(() => {
-    if (editor) {
+    if (editor && !hasInitialized) {
+      setHasInitialized(true)
+      
       // Load template from prebuilt_json_url if provided
       if (prebuiltJsonUrl) {
         fetch(prebuiltJsonUrl)
@@ -45,13 +48,10 @@ function App() {
       else if (imgUrl) {
         handleLoadImageTemplate(imgUrl)
       }
-      // Load an empty canvas if no parameters provided
-      else {
-        handleLoadBlankCanvas()
-      }
+      // Don't load blank canvas by default - let the editor handle it
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor, prebuiltJsonUrl, imgUrl])
+  }, [editor])
   
   // Auto-save feature with debounced saves
   // Let the package handle autosave and change/save callbacks
@@ -119,10 +119,7 @@ function App() {
     try {
       console.log('Starting to load image:', imageUrl)
       
-      // First load a blank canvas
-      handleLoadBlankCanvas()
-      
-      // Then add the image using the editor's add method
+      // Add the image using the editor's add method
       setTimeout(() => {
         try {
           if (editor) {
@@ -136,7 +133,7 @@ function App() {
         } catch (err) {
           console.error('Error adding image to canvas:', err)
         }
-      }, 300)
+      }, 500)
     } catch (err) {
       console.error('Error in handleLoadImageTemplate:', err)
     }
