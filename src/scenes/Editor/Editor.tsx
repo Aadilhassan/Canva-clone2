@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import useAppContext from '@/hooks/useAppContext'
-import { useParams } from 'react-router'
+import { useLocation } from 'react-router'
 import { getElements } from '@store/slices/elements/actions'
 import { getFonts } from '@store/slices/fonts/actions'
 import { useAppDispatch } from '@store/store'
@@ -8,14 +8,19 @@ import Navbar from './components/Navbar'
 import Panels from './components/Panels'
 import Toolbox from './components/Toolbox'
 import Footer from './components/Footer'
-import api from '@services/api'
 import { DesignEditor, useEditor } from 'design-editor-kit'
 
-function App({ location }) {
+function App() {
   const { setCurrentTemplate } = useAppContext()
   const editor = useEditor()
-  const { id } = useParams<{ id: string }>()
+  const location = useLocation()
   const dispath = useAppDispatch()
+  
+  // Parse URL parameters
+  const searchParams = new URLSearchParams(location.search)
+  const imgUrl = searchParams.get('img_url')
+  const userId = searchParams.get('user_id')
+  const prebuiltJsonUrl = searchParams.get('prebuilt_json_url')
 
   useEffect(() => {
     dispath(getElements())
@@ -25,22 +30,28 @@ function App({ location }) {
   const editorConfig = useMemo(() => ({ clipToFrame: true, scrollLimit: 0 }), [])
 
   useEffect(() => {
-    if (id && editor && location) {
-      const locationTemplate = location?.state?.template
-      if (locationTemplate) {
-        setCurrentTemplate(locationTemplate)
-        handleLoadTemplate(locationTemplate)
-      } else {
-        api.getCreationById(id).then(data => {
-          if (data && data.object !== 'error') {
-            setCurrentTemplate(data)
-            handleLoadTemplate(data)
-          }
-        })
+    if (editor) {
+      // Load template from prebuilt_json_url if provided
+      if (prebuiltJsonUrl) {
+        fetch(prebuiltJsonUrl)
+          .then(res => res.json())
+          .then(template => {
+            setCurrentTemplate(template)
+            handleLoadTemplate(template)
+          })
+          .catch(err => console.error('Error loading template from URL:', err))
+      }
+      // If img_url is provided, preload image on canvas
+      else if (imgUrl) {
+        handleLoadImageTemplate(imgUrl)
+      }
+      // Load an empty canvas if no parameters provided
+      else {
+        handleLoadBlankCanvas()
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, editor, location])
+  }, [editor, prebuiltJsonUrl, imgUrl])
   
   // Auto-save feature with debounced saves
   // Let the package handle autosave and change/save callbacks
@@ -63,6 +74,72 @@ function App({ location }) {
     }
 
     editor.importFromJSON(template)
+  }
+
+  const handleLoadBlankCanvas = () => {
+    // Load an empty canvas with default white background
+    const blankTemplate = {
+      version: '5.3.0',
+      objects: [
+        {
+          type: 'rect',
+          version: '5.3.0',
+          originX: 'left',
+          originY: 'top',
+          left: 175.5,
+          top: -286.5,
+          width: 900,
+          height: 1200,
+          fill: 'white',
+          stroke: null,
+          strokeWidth: 1,
+          opacity: 1,
+          visible: true,
+          selectable: false,
+          hasControls: false,
+          name: 'clip'
+        }
+      ],
+      clipPath: {
+        type: 'rect',
+        version: '5.3.0',
+        originX: 'left',
+        originY: 'top',
+        left: 175.5,
+        top: -286.5,
+        width: 900,
+        height: 1200,
+        fill: 'white'
+      }
+    }
+    editor.importFromJSON(blankTemplate)
+  }
+
+  const handleLoadImageTemplate = async (imageUrl: string) => {
+    try {
+      console.log('Starting to load image:', imageUrl)
+      
+      // First load a blank canvas
+      handleLoadBlankCanvas()
+      
+      // Then add the image using the editor's add method
+      setTimeout(() => {
+        try {
+          if (editor) {
+            const imageOptions = {
+              type: 'StaticImage',
+              metadata: { src: imageUrl },
+            }
+            editor.add(imageOptions)
+            console.log('Image added to canvas successfully')
+          }
+        } catch (err) {
+          console.error('Error adding image to canvas:', err)
+        }
+      }, 300)
+    } catch (err) {
+      console.error('Error in handleLoadImageTemplate:', err)
+    }
   }
 
   const loadFonts = fonts => {
@@ -104,9 +181,8 @@ function App({ location }) {
           <div style={{ flex: 1, display: 'flex', padding: '1px' }}>
             <DesignEditor
               config={editorConfig}
-              initialTemplate={location?.state?.template}
               enableAutosave
-              autosaveKey={id ? `design_${id}` : 'canva_clone_autosave'}
+              autosaveKey={userId ? `design_${userId}` : 'canva_clone_autosave'}
               onChange={() => {/* host can plug in if needed */}}
               onSave={() => {/* host can plug in if needed */}}
               onLoadError={(e) => { console.error('Template load error', e) }}

@@ -5,7 +5,6 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { LightTheme, BaseProvider } from 'baseui'
 import { EditorProvider } from '@nkyo/scenify-sdk'
 import { AppProvider } from './contexts/AppContext'
-import { AuthProvider } from './contexts/AuthContext'
 import store, { persistor } from '@store/store'
 import { Provider } from 'react-redux'
 
@@ -18,9 +17,7 @@ const Providers: FC = ({ children }) => {
         <StyletronProvider value={engine}>
           <EditorProvider>
             <BaseProvider theme={LightTheme}>
-              <AuthProvider>
-                <AppProvider>{children}</AppProvider>
-              </AuthProvider>
+              <AppProvider>{children}</AppProvider>
             </BaseProvider>
           </EditorProvider>
         </StyletronProvider>

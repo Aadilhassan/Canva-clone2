@@ -7,11 +7,7 @@ import { useEffect, useState } from 'react'
 import useAppContext from '@/hooks/useAppContext'
 import Resize from './components/Resize'
 import PreviewTemplate from './components/PreviewTemplate'
-import { useHistory, useParams } from 'react-router-dom'
 
-import api from '@/services/api'
-import { useAppDispatch } from '@/store/store'
-import { setCreations, updateCreationsList } from '@/store/slices/creations/actions'
 import History from './components/History'
 const Container = styled('div', props => ({
   height: '70px',
@@ -22,48 +18,29 @@ const Container = styled('div', props => ({
   alignItems: 'center',
 }))
 
-function useParamId() {
-  const params: { id: string | undefined } = useParams()
-  const [id, setId] = useState('')
-  useEffect(() => {
-    const id = params.id ? params.id : ''
-    setId(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params])
-  return id
-}
-
 function NavbarEditor() {
   const editor = useEditor()
   const { currentTemplate } = useAppContext()
-  const history = useHistory()
   const [name, setName] = useState('Untitled design')
-  const id = useParamId()
-  const dispatch = useAppDispatch()
-  const actionText = id ? 'Update' : 'Create'
-  const [saving, setSaving] = useState(false)
 
-  const handleSave = async () => {
+  const handleDownload = async () => {
     if (editor) {
-      setSaving(true)
-      if (id) {
-        const exportedTemplate = editor.exportToJSON()
-        const savedTemplate = await api.updateCreation(id, { ...exportedTemplate, name })
-        dispatch(updateCreationsList(savedTemplate))
-      } else {
-        const exportedTemplate = editor.exportToJSON()
-        const savedTemplate = await api.createCreation({ ...exportedTemplate, name })
-        dispatch(setCreations([savedTemplate]))
-        history.push(`/edit/${savedTemplate.id}`)
-      }
-      setSaving(false)
+      const exportedTemplate = editor.exportToJSON()
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportedTemplate, null, 2))
+      const downloadAnchorNode = document.createElement('a')
+      downloadAnchorNode.setAttribute("href", dataStr)
+      downloadAnchorNode.setAttribute("download", `${name}.json`)
+      document.body.appendChild(downloadAnchorNode)
+      downloadAnchorNode.click()
+      downloadAnchorNode.remove()
     }
   }
 
-  const handleSaveAsTemplate = async () => {
-    const exportedTemplate = editor.exportToJSON()
-    const savedTemplate = await api.createTemplate(exportedTemplate)
-    console.log({ savedTemplate })
+  const handleExport = async () => {
+    if (editor) {
+      // Export to PNG/JPG - this would be handled by the editor
+      console.log('Export functionality - to be implemented')
+    }
   }
 
   useEffect(() => {
@@ -76,14 +53,6 @@ function NavbarEditor() {
     <ThemeProvider theme={DarkTheme}>
       <Container>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Button
-  
-            startEnhancer={<Icons.ChevronLeft size={24} />}
-            kind={KIND.tertiary}
-            onClick={() => history.push('/')}
-          >
-            Home
-          </Button>
           <Resize />
           <History />
         </div>
@@ -112,11 +81,11 @@ function NavbarEditor() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <Button onClick={handleSave} kind={KIND.tertiary}>
-            {saving ? 'Saving' : actionText}
+          <Button onClick={handleDownload} kind={KIND.tertiary}>
+            Download JSON
           </Button>
-          <Button onClick={handleSaveAsTemplate} kind={KIND.secondary}>
-            Save as template
+          <Button onClick={handleExport} kind={KIND.secondary}>
+            Export
           </Button>
           <PreviewTemplate />
         </div>

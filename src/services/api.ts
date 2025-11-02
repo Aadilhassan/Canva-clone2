@@ -11,15 +11,8 @@ class ApiService {
 
   // Helper to get current user's workspace
   private async getCurrentWorkspaceId(): Promise<string> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('User not authenticated')
-    
-    // Get user's first workspace (you might want to implement workspace selection)
-    const workspaces = await designService.getUserWorkspaces()
-    if (workspaces.length === 0) {
-      throw new Error('No workspace found for user')
-    }
-    return workspaces[0].id
+    // Return default workspace since auth is disabled
+    return 'default-workspace'
   }
 
   // UPLOADS - Now using Supabase storage
@@ -36,8 +29,10 @@ class ApiService {
 
   async getUploads(): Promise<IUpload[]> {
     try {
-      const workspaceId = await this.getCurrentWorkspaceId()
-      const assets = await designService.getAssets(workspaceId, 'image')
+      // Return empty array since auth is disabled
+      return []
+      // const workspaceId = await this.getCurrentWorkspaceId()
+      // const assets = await designService.getAssets(workspaceId, 'image')
       
       // Transform design assets to IUpload format
       return assets.map(asset => ({
@@ -81,7 +76,7 @@ class ApiService {
         tags: props.tags || [],
         is_public: false,
         is_premium: false,
-        created_by: (await supabase.auth.getUser()).data.user?.id || ''
+        created_by: 'anonymous'
       })
       return template
     } catch (err) {
@@ -96,8 +91,9 @@ class ApiService {
 
   async getTemplates(): Promise<any[]> {
     try {
-      // First try to get public templates from database
-      const dbTemplates = await designService.getTemplates(true)
+      // Skip database templates since auth is disabled
+      // const dbTemplates = await designService.getTemplates(true)
+      const dbTemplates = []
       
       if (dbTemplates.length > 0) {
         return dbTemplates.map(template => ({
@@ -218,8 +214,8 @@ class ApiService {
         status: 'draft',
         is_template: false,
         tags: props.tags || [],
-        created_by: (await supabase.auth.getUser()).data.user?.id || '',
-        last_modified_by: (await supabase.auth.getUser()).data.user?.id || ''
+        created_by: 'anonymous',
+        last_modified_by: 'anonymous'
       })
       return creation
     } catch (err) {
@@ -229,8 +225,10 @@ class ApiService {
 
   async getCreations(): Promise<any[]> {
     try {
-      const workspaceId = await this.getCurrentWorkspaceId()
-      const projects = await designService.getDesignProjects(workspaceId)
+      // Return empty array since auth is disabled
+      return []
+      // const workspaceId = await this.getCurrentWorkspaceId()
+      // const projects = await designService.getDesignProjects(workspaceId)
       
       return projects.map(project => ({
         id: project.id,

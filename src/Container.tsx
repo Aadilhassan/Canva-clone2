@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import ResizeObserver from 'resize-observer-polyfill'
 import useAppContext from '@hooks/useAppContext'
 import Loading from './components/Loading'
-import ProtectedRoute from './components/ProtectedRoute'
 import { editorFonts } from './constants/fonts'
 import { useAppDispatch } from './store/store'
 import { getTemplates } from './store/slices/templates/actions'
@@ -64,9 +63,10 @@ function Container({ children }) {
   }
 
   useEffect(() => {
-    dispatch(getTemplates())
-    dispatch(getUploads())
-    dispatch(getCreations())
+    // Disable API calls - app will work without backend
+    // dispatch(getTemplates())
+    // dispatch(getUploads())
+    // dispatch(getCreations())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -81,9 +81,9 @@ function Container({ children }) {
       }}
     >
       {loaded ? (
-        <ProtectedRoute>
+        <>
           {children}
-        </ProtectedRoute>
+        </>
       ) : (
         <Loading />
       )}
