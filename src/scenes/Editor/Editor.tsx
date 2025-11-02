@@ -8,7 +8,7 @@ import Navbar from './components/Navbar'
 import Panels from './components/Panels'
 import Toolbox from './components/Toolbox'
 import Footer from './components/Footer'
-import { DesignEditor, useEditor } from 'design-editor-kit'
+import Editor, { useEditor } from '@nkyo/scenify-sdk'
 
 function App() {
   const { setCurrentTemplate } = useAppContext()
@@ -20,7 +20,7 @@ function App() {
   // Parse URL parameters
   const searchParams = new URLSearchParams(location.search)
   const imgUrl = searchParams.get('img_url')
-  const userId = searchParams.get('user_id')
+  const userId = searchParams.get('user_id') // Used for context/tracking
   const prebuiltJsonUrl = searchParams.get('prebuilt_json_url')
 
   useEffect(() => {
@@ -176,13 +176,8 @@ function App() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           <Toolbox />
           <div style={{ flex: 1, display: 'flex', padding: '1px' }}>
-            <DesignEditor
+            <Editor
               config={editorConfig}
-              enableAutosave
-              autosaveKey={userId ? `design_${userId}` : 'canva_clone_autosave'}
-              onChange={() => {/* host can plug in if needed */}}
-              onSave={() => {/* host can plug in if needed */}}
-              onLoadError={(e) => { console.error('Template load error', e) }}
             />
           </div>
           <Footer />
